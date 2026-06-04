@@ -6,6 +6,7 @@ from sqlalchemy import text
 from redis.asyncio import Redis
 from app.core import settings, log, init_redis, close_redis, get_redis
 from app.core.database import get_db, engine
+from app.api.v1 import auth
 
 
 @asynccontextmanager
@@ -52,6 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 注册路由
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
 
 
 @app.get("/health")
