@@ -13,6 +13,8 @@
 - Alembic (数据库迁移)
 - Loguru (日志)
 - Pydantic Settings (配置管理)
+- python-jose (JWT 认证)
+- passlib (密码哈希)
 
 ## 快速开始
 
@@ -71,11 +73,18 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 backend/
 ├── alembic/             # Alembic 数据库迁移配置
 ├── app/
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── deps.py      # 依赖注入（如 get_current_user）
+│   │   └── v1/
+│   │       ├── __init__.py
+│   │       └── auth.py  # 认证路由（登录、受保护测试）
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py    # 应用配置（Pydantic Settings）
 │   │   ├── database.py  # 异步数据库连接和会话管理
 │   │   ├── redis.py     # 异步 Redis 连接池
+│   │   ├── security.py  # JWT 认证和密码工具
 │   │   └── logger.py    # 日志系统配置
 │   ├── __init__.py
 │   └── main.py          # FastAPI 应用入口
@@ -124,18 +133,56 @@ backend/
 
 测试 Redis 连接状态。
 
-**成功响应:**
+**成功响应**：
 ```json
 {
   "redis": "pong"
 }
 ```
 
-**失败响应:**
+**失败响应**：
 ```json
 {
   "redis": "disconnected",
   "reason": "连接错误信息"
+}
+```
+
+### POST /api/v1/auth/login
+
+[演示用途] 用户登录，获取 JWT 访问令牌。
+
+**请求体**：
+```json
+{
+  "email": "test@example.com",
+  "password": "secret"
+}
+```
+
+**成功响应**：
+```json
+{
+  "access_token": "...",
+  "token_type": "bearer"
+}
+```
+
+### GET /api/v1/auth/me
+
+获取当前用户信息，需要 Bearer token。
+
+**请求头**：
+```
+Authorization: Bearer <access_token>
+```
+
+**成功响应**：
+```json
+{
+  "user_id": "1",
+  "email": "test@example.com",
+  "message": "This is a mock user data for demonstration purposes"
 }
 ```
 
