@@ -7,6 +7,11 @@
 - Python 3.12+
 - FastAPI
 - Uvicorn
+- SQLAlchemy (异步)
+- PostgreSQL (通过 asyncpg)
+- Alembic (数据库迁移)
+- Loguru (日志)
+- Pydantic Settings (配置管理)
 
 ## 快速开始
 
@@ -29,7 +34,16 @@ Windows (PowerShell):
 pip install -r requirements.txt
 ```
 
-### 4. 启动服务
+### 4. 配置环境变量
+
+复制 .env.example 为 .env:
+```powershell
+copy .env.example .env
+```
+
+编辑 .env 文件，填入正确的数据库连接信息等配置。
+
+### 5. 启动服务
 
 开发模式（带热重载）:
 ```powershell
@@ -41,20 +55,31 @@ uvicorn app.main:app --reload
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 5. 访问服务
+### 6. 访问服务
 
 - 健康检查: http://localhost:8000/health
+- 数据库连接检查: http://localhost:8000/db-check
 - API 文档: http://localhost:8000/docs
 - 替代文档: http://localhost:8000/redoc
+- 配置调试（仅 DEBUG 模式）: http://localhost:8000/config/debug
 
 ## 项目结构
 
 ```
 backend/
+├── alembic/             # Alembic 数据库迁移配置
 ├── app/
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── config.py    # 应用配置（Pydantic Settings）
+│   │   ├── database.py  # 异步数据库连接和会话管理
+│   │   └── logger.py    # 日志系统配置
 │   ├── __init__.py
 │   └── main.py          # FastAPI 应用入口
+├── .env                 # 环境变量（不提交到 git）
+├── .env.example         # 环境变量示例
 ├── .venv/               # 虚拟环境（已添加到 .gitignore）
+├── alembic.ini          # Alembic 配置
 ├── requirements.txt     # 依赖包列表
 └── README.md            # 项目说明
 ```
@@ -68,6 +93,45 @@ backend/
 **响应:**
 ```json
 {
-  "status": "ok"
+  "status": "ok",
+  "app_name": "Novel2Script"
 }
+```
+
+### GET /db-check
+
+测试数据库连接状态。
+
+**成功响应:**
+```json
+{
+  "database": "connected"
+}
+```
+
+**失败响应:**
+```json
+{
+  "database": "disconnected",
+  "reason": "连接错误信息"
+}
+```
+
+### GET /config/debug (DEBUG 模式)
+
+查看配置信息（敏感信息已脱敏）。
+
+## 数据库迁移
+
+使用 Alembic 管理数据库迁移:
+
+```powershell
+# 生成新迁移
+alembic revision --autogenerate -m "描述变更"
+
+# 执行迁移
+alembic upgrade head
+
+# 回退迁移
+alembic downgrade -1
 ```

@@ -14,9 +14,11 @@ engine = create_async_engine(
 
 # 创建异步会话工厂
 AsyncSessionLocal = async_sessionmaker(
-    engine,
+    bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,  # 使用此设置时，业务代码中可能需要显式 refresh 对象
+    autocommit=False,
+    autoflush=False,
 )
 
 # 基类
@@ -27,12 +29,10 @@ async def get_db():
     """
     依赖注入：获取数据库会话
     """
-    session = AsyncSessionLocal()
-    try:
-        yield session
-        await session.commit()
-    except Exception:
-        await session.rollback()
-        raise
-    finally:
-        await session.close()
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
