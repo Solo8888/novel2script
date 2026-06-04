@@ -1,24 +1,22 @@
 from typing import List
-from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-import os
-
-
-load_dotenv()
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env")
+    
     APP_NAME: str = "Novel2Script"
     DEBUG: bool = True
     
-    DATABASE_URL: str = "sqlite:///./novel2script.db"
-    REDIS_URL: str = "redis://localhost:6379/0"
+    DATABASE_URL: str
+    REDIS_URL: str
     
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    SECRET_KEY: SecretStr
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    JWT_EXPIRE_MINUTES: int = 30
     
-    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_API_KEY: SecretStr = SecretStr("")
     LLM_MOCK_MODE: bool = True
     
     CORS_ORIGINS: str = "*"
