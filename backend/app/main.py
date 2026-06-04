@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
-from app.core import settings, log
+from redis.asyncio import Redis
+from app.core import settings, log, init_redis, close_redis, get_redis
 from app.core.database import get_db, engine
 
 
@@ -12,6 +13,13 @@ async def lifespan(app: FastAPI):
     app.state.settings = settings
     log.info(f"Application {settings.APP_NAME} starting...")
     log.debug(f"Debug mode: {settings.DEBUG}")
+    
+    # 启动时初始化 Redis
+    try:
+        await init_redis()
+        log.info("Redis connection successful")
+    except Exception as e:
+        log.warning(f"Redis connection failed on startup: {e}")
     
     # 启动时测试数据库连接
     try:
@@ -23,7 +31,9 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # 关闭时优雅地关闭数据库引擎
+    # 关闭时优雅地关闭 Redis 和数据库引擎
+    log.info("Closing Redis connection pool...")
+    await close_redis()
     log.info("Disposing database connections...")
     await engine.dispose()
     log.info("Application shutting down...")
@@ -64,6 +74,23 @@ async def db_check(db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=503,
             detail={"database": "disconnected", "reason": str(e)}
+        )
+
+
+@app.get("/redis-check")
+async def redis_check(redis: Redis = Depends(get_redis)):
+    """
+    测试 Redis 连接
+    """
+    try:
+        await redis.ping()
+        log.info("Redis check successful")
+        return {"redis": "pong"}
+    except Exception as e:
+        log.error(f"Redis check failed: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail={"redis": "disconnected", "reason": str(e)}
         )
 
 
