@@ -27,10 +27,12 @@ async def get_db():
     """
     依赖注入：获取数据库会话
     """
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+    session = AsyncSessionLocal()
+    try:
+        yield session
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
