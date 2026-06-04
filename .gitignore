@@ -1,2 +1,15 @@
 .trae/
 .idea/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+*.log
+.DS_Store
