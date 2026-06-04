@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.core import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
@@ -21,6 +21,19 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
         algorithm=settings.JWT_ALGORITHM
     )
     return encoded_jwt
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    """解码并验证 JWT token"""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[settings.JWT_ALGORITHM],
+        )
+        return payload
+    except JWTError:
+        raise ValueError("Invalid token")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
