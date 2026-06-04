@@ -9,6 +9,7 @@
 - Uvicorn
 - SQLAlchemy (异步)
 - PostgreSQL (通过 asyncpg)
+- Redis (异步, 通过 hiredis)
 - Alembic (数据库迁移)
 - Loguru (日志)
 - Pydantic Settings (配置管理)
@@ -59,6 +60,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 - 健康检查: http://localhost:8000/health
 - 数据库连接检查: http://localhost:8000/db-check
+- Redis 连接检查: http://localhost:8000/redis-check
 - API 文档: http://localhost:8000/docs
 - 替代文档: http://localhost:8000/redoc
 - 配置调试（仅 DEBUG 模式）: http://localhost:8000/config/debug
@@ -73,6 +75,7 @@ backend/
 │   │   ├── __init__.py
 │   │   ├── config.py    # 应用配置（Pydantic Settings）
 │   │   ├── database.py  # 异步数据库连接和会话管理
+│   │   ├── redis.py     # 异步 Redis 连接池
 │   │   └── logger.py    # 日志系统配置
 │   ├── __init__.py
 │   └── main.py          # FastAPI 应用入口
@@ -113,6 +116,25 @@ backend/
 ```json
 {
   "database": "disconnected",
+  "reason": "连接错误信息"
+}
+```
+
+### GET /redis-check
+
+测试 Redis 连接状态。
+
+**成功响应:**
+```json
+{
+  "redis": "pong"
+}
+```
+
+**失败响应:**
+```json
+{
+  "redis": "disconnected",
   "reason": "连接错误信息"
 }
 ```
