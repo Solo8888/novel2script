@@ -148,14 +148,14 @@ backend/
 }
 ```
 
-### POST /api/v1/login
+### POST /api/v1/auth/login
 
-用户登录，获取 JWT 访问令牌。
+[演示用途] 用户登录，获取 JWT 访问令牌。
 
 **请求体**：
 ```json
 {
-  "username": "admin",
+  "email": "test@example.com",
   "password": "secret"
 }
 ```
@@ -168,9 +168,9 @@ backend/
 }
 ```
 
-### GET /api/v1/protected
+### GET /api/v1/auth/me
 
-受保护的测试路由，需要 Bearer token。
+获取当前用户信息，需要 Bearer token。
 
 **请求头**：
 ```
@@ -180,8 +180,9 @@ Authorization: Bearer <access_token>
 **成功响应**：
 ```json
 {
-  "message": "You are authenticated",
-  "user": {"sub": "admin"}
+  "user_id": "1",
+  "email": "test@example.com",
+  "message": "This is a mock user data for demonstration purposes"
 }
 ```
 
