@@ -22,6 +22,10 @@ async def lifespan(app: FastAPI):
         log.warning(f"Database connection failed on startup: {e}")
     
     yield
+    
+    # 关闭时优雅地关闭数据库引擎
+    log.info("Disposing database connections...")
+    await engine.dispose()
     log.info("Application shutting down...")
 
 
